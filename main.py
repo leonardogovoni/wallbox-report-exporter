@@ -2,8 +2,7 @@
 from argparse import ArgumentParser
 from datetime import datetime, timedelta
 from openpyxl import Workbook
-from openpyxl.styles.colors import Color
-from openpyxl.styles.fills import PatternFill
+from openpyxl.styles import Font, PatternFill, Border, Side
 from requests.exceptions import HTTPError
 from wallbox import Wallbox
 
@@ -54,8 +53,8 @@ if __name__ == '__main__':
 		exit(3)
 	args.year = args.year if args.year is not None else datetime.now().year
 	if args.full_year:
-		start = datetime(year , 1, 1)
-		end = datetime(year + 1, 1, 1) - timedelta(seconds=1)
+		start = datetime(args.year , 1, 1)
+		end = datetime(args.year + 1, 1, 1) - timedelta(seconds=1)
 	else:
 		start = datetime(args.year, args.month, 1)
 		end = datetime(args.year, args.month + 1, 1) - timedelta(seconds=1)
@@ -65,17 +64,21 @@ if __name__ == '__main__':
 	sessions = [session['attributes'] for session in sessions]
 	sessions = sorted(sessions, key=lambda x: x['start'])
 
-	# Create the xlsx workbook and worksheet
+	# Create worksheet and styling properties
 	workbook = Workbook()
 	worksheet = workbook.active
-	if args.italian:
-		worksheet.append(['', 'Inizio sessione', 'Fine sessione', 'Durata', 'Energia complessiva', 'Energia di rete', 'Energia fotovoltaico', 'Costo', 'Risparmio da fotovoltaico'])
-	else:
-		worksheet.append(['', 'Session start', 'Session end', 'Duration', 'Total energy', 'Grid energy', 'Solar energy', 'Cost', 'Savings from solar'])
+	thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+	header_font = Font(bold=True)
+	header_fill = PatternFill(start_color='f1c232', end_color='f1c232', fill_type='solid')
+	data_fill = PatternFill(start_color='a2c4c9', end_color='a2c4c9', fill_type='solid')
 
+	# Insert data
+	if args.italian:
+		worksheet.append(['Inizio sessione', 'Fine sessione', 'Durata', 'Energia complessiva', 'Energia di rete', 'Energia fotovoltaico', 'Costo', 'Risparmio da fotovoltaico'])
+	else:
+		worksheet.append(['Session start', 'Session end', 'Duration', 'Total energy', 'Grid energy', 'Solar energy', 'Cost', 'Savings from solar'])
 	for session in sessions:
 		worksheet.append([
-			'',
 			datetime.fromtimestamp(session['start']).strftime('%d/%m/%Y %H:%M:%S'),
 			datetime.fromtimestamp(session['end']).strftime('%d/%m/%Y %H:%M:%S'),
 			str(timedelta(seconds=session['time'])),
@@ -85,6 +88,29 @@ if __name__ == '__main__':
 			f'{session['cost_unit']}{round(session['cost'], 2)}',
 			f'{session['cost_unit']}{round(session['cost_savings'], 2)}'
 		])
+
+	# Apply styling
+	for row in worksheet[worksheet.calculate_dimension()]:
+		for cell in row:
+			cell.border = thin_border
+			cell.fill = data_fill
+	# Replace styling for header
+	for header_cell in worksheet[1]:
+		header_cell.font = header_font
+		header_cell.fill = header_fill
+
+	# Set column widths
+	worksheet.column_dimensions['B'].width = 22
+	worksheet.column_dimensions['C'].width = 22
+	worksheet.column_dimensions['D'].width = 15
+	worksheet.column_dimensions['E'].width = 15
+	worksheet.column_dimensions['F'].width = 15
+	worksheet.column_dimensions['G'].width = 15
+	worksheet.column_dimensions['H'].width = 15
+	worksheet.column_dimensions['I'].width = 17
+
+	worksheet.insert_rows(1)
+	worksheet.insert_cols(1)
 
 	# Save
 	if args.output is None:
