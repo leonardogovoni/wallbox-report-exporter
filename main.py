@@ -14,10 +14,10 @@ if __name__ == '__main__':
 	parser.add_argument('-c', '--charger-id', help='Charger ID to generate the report for; required if you have multiple chargers associated', type=int)
 	parser.add_argument('-m', '--month', help='Month for the report; defaults to the current month if not specified', type=int)
 	parser.add_argument('-y', '--year', help='Year for the report; defaults to the current year if not specified', type=int)
-	parser.add_argument('--full-year', help='Generate a report for the entire year instead of a single month', action='store_true')
+	parser.add_argument('--full-year', help='Generate a report for the entire year instead of a single month', action='store_true', default=False)
 	parser.add_argument('-o', '--output', help='Output file name; defaults to YYYY-MM.xlsx or YYYY.xlsx if not specified')
-	# parser.add_argument('-s', '--summary', help='Include a summary at the end of the table with stats like total energy charged etc.', action='store_true')
-	parser.add_argument('-it', '--italian', help='Use Italian for descriptions and table headings in the report', action='store_true')
+	parser.add_argument('-s', '--summary', help='Include a summary at the end of the table with stats like total energy charged etc.', action='store_true', default=False)
+	parser.add_argument('-it', '--italian', help='Use Italian for descriptions and table headings in the report', action='store_true', default=False)
 	args = parser.parse_args()
 
 	# Authenticate
@@ -99,6 +99,31 @@ if __name__ == '__main__':
 		header_cell.font = header_font
 		header_cell.fill = header_fill
 
+	# Insert summary
+	if args.summary:
+		if args.italian:
+			summary_header = ['Energia totale', 'Energia di rete totale', 'Energia fotovoltaico totale', 'Costo totale', 'Risparmio totale da fotovoltaico']
+		else:
+			summary_header = ['Total energy', 'Total grid energy', 'Total solar energy', 'Total cost', 'Total savings from solar']
+		summary_data = [
+			f"{sum(round(session['energy'], 2) for session in sessions)} {sessions[0]['energy_unit']}",
+			f"{sum(round(session['energy'] - session['green_energy'], 2) for session in sessions)} {sessions[0]['energy_unit']}",
+			f"{sum(round(session['green_energy'], 2) for session in sessions)} {sessions[0]['energy_unit']}",
+			f"{sessions[0]['cost_unit']}{round(sum(session['cost'] for session in sessions), 2)}",
+			f"{sessions[0]['cost_unit']}{round(sum(session['cost_savings'] for session in sessions), 2)}"
+		]
+		end_row = worksheet.max_row
+		for i in range(0, len(summary_header)):
+			header_cell = worksheet[end_row + i + 3][0]
+			data_cell = worksheet[end_row + i + 3][1]
+			header_cell.value = summary_header[i]
+			header_cell.border = thin_border
+			header_cell.font = header_font
+			header_cell.fill = header_fill
+			data_cell.value = summary_data[i]
+			data_cell.border = thin_border
+			data_cell.fill = data_fill
+
 	# Set column widths
 	worksheet.column_dimensions['B'].width = 22
 	worksheet.column_dimensions['C'].width = 22
@@ -119,5 +144,3 @@ if __name__ == '__main__':
 		else:
 			args.output = f'{args.year}-{args.month:02d}.xlsx'
 	workbook.save(args.output)
-
-	# print(f"{sum(round(session['energy'], 2) for session in sessions)} {sessions[0]['energy_unit']} charged in {len(sessions)} sessions.")
