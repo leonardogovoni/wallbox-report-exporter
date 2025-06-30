@@ -55,12 +55,12 @@ To ensure accurate cost calculations, configure your electricity rate ($/kWh) in
 In the future I’ll likely implement a way to select the desired charger directly from the tool, but for now you need to specify its ID manually. To do this, go to [myWallbox.com](https://mywallbox.com) and open the chargers page. In the list, each charger should display its serial number next to its name. Copy the serial number and pass it to the script using the `-c <serial>` parameter.
 
 ## Things that can be improved
-This script was originally made just for me, to see how much my parents' EV was helping us save money by charging it with solar energy — but it's still far from perfect for general use.
+This script was originally created to help me understand how much money my parents' EV was saving by charging with solar energy —  it's still far from perfect for general use.
 
 Here are some ideas that could significantly improve the usability and overall quality of the script:
 - When multiple chargers are associated with the account:
   - List their IDs directly from the tool, without requiring access to the website
-  - Optionally export a report that includes data from all chargers
+  - Optionally generate a report that includes data from all chargers
 - The date format is currently hardcoded and it doesn't follow the formatting conventions 
 - Add support for exporting to CSV files
 - Add an option to generate a full-year report with a separate sheet for each month, rather than a single sheet with all sessions
