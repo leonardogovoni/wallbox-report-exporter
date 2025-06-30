@@ -8,7 +8,7 @@ from wallbox import Wallbox
 
 if __name__ == '__main__':
 	# Parse arguments
-	parser = ArgumentParser('wallbox-report-exporter')
+	parser = ArgumentParser('wallbox-report-generator')
 	parser.add_argument('-u', '--user', help='Your myWallbox.com username', required=True)
 	parser.add_argument('-p', '--password', help='Your myWallbox.com password', required=True)
 	parser.add_argument('-c', '--charger-id', help='Charger ID to generate the report for; required if you have multiple chargers associated', type=int)
@@ -17,7 +17,7 @@ if __name__ == '__main__':
 	parser.add_argument('--full-year', help='Generate a report for the entire year instead of a single month', action='store_true', default=False)
 	parser.add_argument('-o', '--output', help='Output file name; defaults to YYYY-MM.xlsx or YYYY.xlsx if not specified')
 	parser.add_argument('-s', '--summary', help='Include a summary at the end of the table with stats like total energy charged etc.', action='store_true', default=False)
-	parser.add_argument('-it', '--italian', help='Use Italian for descriptions and table headings in the report', action='store_true', default=False)
+	parser.add_argument('-it', '--italian', help='Use Italian language for descriptions and table headings in the report', action='store_true', default=False)
 	args = parser.parse_args()
 
 	# Authenticate
